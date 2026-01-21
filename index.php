@@ -1,0 +1,58 @@
+<?php
+/**
+ * index.php
+ * ---------
+ * Точка входа для webhook Bitrix24
+ */
+
+$config = require __DIR__ . '/config/config.php';
+
+// Подключаем классы
+require __DIR__ . '/src/Logger.php';
+require __DIR__ . '/src/BitrixClient.php';
+require __DIR__ . '/src/ActivityService.php';
+require __DIR__ . '/src/DealService.php';
+require __DIR__ . '/src/LeadService.php';
+require __DIR__ . '/src/EntityMatcher.php';
+require __DIR__ . '/src/EmailRouter.php';
+require __DIR__ . '/src/ContactService.php';
+
+// Инициализация логгера
+$logger = new Logger($config['log']);
+
+try {
+    // Инициализация остальных компонентов
+    $bx     = new BitrixClient($config['bitrix']['webhook_url'], $logger);
+
+    $router = new EmailRouter(
+        $logger,
+        new ActivityService($bx, $logger),
+        new DealService($bx),
+        new LeadService($bx, $logger),
+        new ContactService($bx)
+    );
+
+    // ID активности приходит от Bitrix
+    $activityId = $_POST['data']['FIELDS']['ID'] ?? null;
+
+    if (!$activityId) {
+        $logger->error('No activity ID in webhook');
+        http_response_code(400);
+        echo 'Bad Request';
+        exit;
+    }
+
+    // Запуск обработки
+    $router->handle((int)$activityId);
+
+    http_response_code(200);
+    echo 'OK';
+
+} catch (Exception $e) {
+    $logger->error('Unhandled exception in index.php', [
+        'exception' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
+    http_response_code(500);
+    echo 'Internal Server Error';
+}

@@ -4,6 +4,32 @@
  * ---------
  * Точка входа для webhook Bitrix24
  */
+$envPath = __DIR__ . '/.env';
+if (file_exists($envPath)) {
+    foreach(file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (str_starts_with(trim($line), '#')) {
+            continue;
+        }
+        [$key, $value] = explode('=', $line, 2);
+        putenv(trim($key) . '=' . trim($value));
+    }
+}
+
+// --- SECURITY CHECK ---
+$secret = $_GET['secret'] ?? '';
+if(!hash_equals(getenv('WEBHOOK_SECRET') ?: '', $secret)) {
+    http_response_code(403);
+    echo 'Forbidden WEBHOOK_SECRET';
+    exit;
+}
+
+$appToken = $_REQUEST['auth']['application_token'] ?? '';
+if (!hash_equals(getenv('BITRIX_APP_TOKEN') ?: '', $appToken)) {
+    http_response_code(403);
+    echo 'Forbidden BITRIX_APP_TOKEN';
+    exit;
+}
+
 
 $config = require __DIR__ . '/config/config.php';
 

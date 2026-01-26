@@ -85,7 +85,6 @@ class EmailRouter
     private function getValidContact(?string $email): ?array
     {
         try {
-            $this->log->info('getValidContact', ['email' => $email]);
             if (!$email) {
                 $this->log->info('Не указана почта, пропускаем', ['email' => $email]);
                 return null;

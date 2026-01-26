@@ -44,7 +44,9 @@ require __DIR__ . '/src/EmailRouter.php';
 require __DIR__ . '/src/ContactService.php';
 
 // Инициализация логгера
-$logger = new Logger($config['log']);
+$logger = new Logger($config['log']);  
+$logger->info('=====> Новая активность',[]);
+
 
 try {
     // Инициализация остальных компонентов
@@ -62,7 +64,7 @@ try {
     $activityId = $_POST['data']['FIELDS']['ID'] ?? null;
 
     if (!$activityId) {
-        $logger->error('No activity ID in webhook');
+        $logger->error('Нет ID активити в вебхуке');
         http_response_code(400);
         echo 'Bad Request';
         exit;

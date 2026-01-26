@@ -142,7 +142,7 @@ class EmailRouter
             }
 
             // Если совпадений по контакту нет — создаем новый лид для контакта
-            $this->log->info('У этого контакта не найдено ни лидов, сделок с такой темой', ['contactId' => $contact['ID'], 'subject' => $subject]);
+            $this->log->info('У этого контакта не найдено ни лидов, ни сделок с такой темой', ['contactId' => $contact['ID'], 'subject' => $subject]);
             $newLeadId = $this->leads->createLeadAndWait($subject, $contact['ID']); // Предполагаем, что метод принимает contactId
 
             if (!$newLeadId) {

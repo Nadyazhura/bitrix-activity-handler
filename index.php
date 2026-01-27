@@ -42,11 +42,20 @@ require __DIR__ . '/src/LeadService.php';
 require __DIR__ . '/src/EntityMatcher.php';
 require __DIR__ . '/src/EmailRouter.php';
 require __DIR__ . '/src/ContactService.php';
+require __DIR__ . '/src/FileLock.php';
 
 // Инициализация логгера
 $logger = new Logger($config['log']);  
 $logger->info('=====> Новая активность',[]);
 
+// Попытка получить глобальную файловую блокировку, чтобы избежать одновременной обработки
+$lock = FileLock::acquire('incoming_webhook', 5.0);
+if ($lock === false) {
+    $logger->warning('Could not acquire webhook lock');
+    http_response_code(503);
+    echo 'Service busy, try later';
+    exit;
+}
 
 try {
     // Инициализация остальных компонентов
@@ -83,4 +92,8 @@ try {
     ]);
     http_response_code(500);
     echo 'Internal Server Error';
+} finally {
+    if (isset($lock) && $lock) {
+        $lock->release();
+    }
 }

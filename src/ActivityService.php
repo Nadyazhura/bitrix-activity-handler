@@ -38,7 +38,7 @@ class ActivityService
      */
     public function clone(int $activityId, int $newOwnerId, int $ownerTypeId): ?int
     {
-        $this->logger->info('[START] Cloning email activity', [
+        $this->logger->info('[START] Клонирование активности', [
             'activityId' => $activityId,
             'newOwnerId' => $newOwnerId,
             'ownerTypeId' => $ownerTypeId
@@ -94,7 +94,7 @@ class ActivityService
         // Проверяем, если создание прошло успешно
         if (isset($createResult['result'])) {
             $newActivityId = $createResult['result'];
-            $this->logger->info('[SUCCESS] New email activity cloned', [
+            $this->logger->info('[SUCCESS] Активность клонирована', [
                 'newActivityId' => $newActivityId
             ]);
             return $newActivityId;

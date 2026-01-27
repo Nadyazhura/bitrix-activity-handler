@@ -46,7 +46,7 @@ class LeadService
         return $leads;
     }
 
-    function createLeadAndWait(string $title, ?int $contactId = null, int $timeout = 30, int $interval = 2): ?int 
+    public function createLeadAndWait(string $title, ?int $contactId = null, int $timeout = 30, int $interval = 2): ?int 
     {        
         // Создаём лид
         $fields = [

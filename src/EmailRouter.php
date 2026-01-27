@@ -27,6 +27,9 @@ class EmailRouter
         $this->contacts = $contacts;
     }
 
+    /**
+     * Основной метод обработки email-активности
+     */
     public function handle(int $activityId): void
     {
         try {
@@ -82,6 +85,9 @@ class EmailRouter
         }
     }
 
+    /**
+     * Найти контакт по email, вернуть null если не найден или ошибка
+     */
     private function getValidContact(?string $email): ?array
     {
         try {
@@ -125,19 +131,25 @@ class EmailRouter
             $this->log->info('Контакт найден', $contact);
 
             // Сделки контакта
-            $deal = EntityMatcher::matchBySubject($subject, $this->deals->listByContact($contact['ID']));
-            if ($deal) {
-                $this->log->info('Сделка найдена', [$deal['ID']]);
-                $this->cloneIfNotBound($activity, $deal['ID'], 2, 'deal');
-                return;
+            $dealsList = $this->deals->listByContact($contact['ID']);
+            if (is_array($dealsList)) {
+                $deal = EntityMatcher::matchBySubject($subject, $dealsList);
+                if ($deal) {
+                    $this->log->info('Сделка найдена', [$deal['ID']]);
+                    $this->cloneIfNotBound($activity, $deal['ID'], 2, 'deal');
+                    return;
+                }
             }
 
             // Лиды контакта
-            $lead = EntityMatcher::matchBySubject($subject, $this->leads->listByContact($contact['ID']));
-            if ($lead) {
-                $this->log->info('Лид найден', [$lead['ID']]);
-                $this->cloneIfNotBound($activity, $lead['ID'], 1, 'lead');
-                return;
+            $leadsList = $this->leads->listByContact($contact['ID']);
+            if (is_array($leadsList)) {
+                $lead = EntityMatcher::matchBySubject($subject, $leadsList);
+                if ($lead) {
+                    $this->log->info('Лид найден', [$lead['ID']]);
+                    $this->cloneIfNotBound($activity, $lead['ID'], 1, 'lead');
+                    return;
+                }
             }
 
             // Если совпадений по контакту нет — создаем новый лид для контакта
@@ -163,6 +175,9 @@ class EmailRouter
         }
     }
 
+    /**
+     * Обработка поиска по всем лидам или сделкам
+     */
     private function handleEntitiesByAll(array $activity, string $subject, string $entityType): bool
     {
         try {
@@ -188,6 +203,9 @@ class EmailRouter
         }
     }
 
+    /**
+     * Клонировать активность к новой сущности, если она еще не привязана к ней
+     */
     private function cloneIfNotBound(array $activity, int $newOwnerId, int $ownerTypeId, string $entityType): void
     {
         try {
@@ -213,6 +231,9 @@ class EmailRouter
         }
     }
 
+    /**
+     * Клонировать активность к новой сущности и удалить старую
+     */
     private function cloneAndDeleteActivity(int $activityId, int $newOwnerId, int $ownerTypeId, string $entityType): void
     {
         try {

@@ -21,9 +21,11 @@ class ActivityService
      */
     public function get(int $id): ?array
     {
-        return $this->bx
-            ->call('crm.activity.get', ['id' => $id])['result']
-            ?? null;
+        $result = $this->bx->call('crm.activity.get', ['id' => $id]);
+        if ($result === null) {
+            return null;
+        }
+        return $result['result'] ?? null;
     }
 
     /**
@@ -104,12 +106,15 @@ class ActivityService
         }
     }
 
+    /**
+     * Удаление активности по ID
+     */
     public function delete(int $activityId): bool
     {
-        $this->logger->info('[START] Deleting activity', ['activityId' => $activityId]);
+        $this->logger->info('[START] Удаление активности', ['activityId' => $activityId]);
         $result = $this->bx->call('crm.activity.delete', ['id' => $activityId]);
         if (isset($result['result'])) {
-            $this->logger->info('[SUCCESS] Activity deleted', ['activityId' => $activityId]);
+            $this->logger->info('[SUCCESS] Активность удалена', ['activityId' => $activityId]);
             return true;
         } else {
             $this->logger->error('[ERROR] Failed to delete activity', [
@@ -125,10 +130,11 @@ class ActivityService
      *
      * @param int $entityType 1 — лид, 2 — сделка
      * @param int $entityId
+     * @return bool успех операции
      */
-    public function rebind(int $activityId, int $entityType, int $entityId, string $subject )
+    public function rebind(int $activityId, int $entityType, int $entityId, string $subject): bool
     {
-        return $this->bx->call('crm.activity.update', [
+        $result = $this->bx->call('crm.activity.update', [
             'id' => $activityId,
             'fields' => [
                 'OWNER_TYPE_ID' => $entityType,
@@ -143,7 +149,12 @@ class ActivityService
                 ]
             ]
         ]);
+        return isset($result['result']) ? true : false;
     }
+
+    /**
+     * Извлечь email клиента из активности
+     */
     public static function extractClientEmail(array $activity): ?string
     {
         if (!empty($activity['SETTINGS']['EMAIL_META']['from'])) {

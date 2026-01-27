@@ -49,7 +49,10 @@ class DealService
         return $deals;
     }
 
-    function createDealAndWait(string $title, int $timeout = 30, int $interval = 2): ?int 
+    /**
+     * Создать сделку и дождаться её появления в системе
+     */
+    public function createDealAndWait(string $title, int $timeout = 30, int $interval = 2): ?int 
     {        
         // Создаём сделку
         $newDealId = $this->bx->call('crm.deal.add', [
@@ -70,7 +73,6 @@ class DealService
 
             if (!empty($getResult['result'])) {
                 // Сделка найдена – можно вернуть его данные
-                $this->log->info("Deal is created and found ID {$newDealId}",[]);   
                 return $newDealId;
             }
             // Если не найдено, подождём и попробуем снова

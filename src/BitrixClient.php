@@ -31,11 +31,6 @@ class BitrixClient
      */
     public function call(string $method, array $params = [])
     {
-        /* $this->logger->debug('Bitrix API call', [
-            'method' => $method,
-            'params' => $params
-        ]); */
-
         $ch = curl_init($this->webhook . $method);
 
         curl_setopt_array($ch, [
@@ -47,20 +42,37 @@ class BitrixClient
 
         $response = curl_exec($ch);
 
-        // Ошибка curl
         if ($response === false) {
+            $errno = curl_errno($ch);
+            $error = curl_error($ch);
             $this->logger->error('Curl error', [
-                'error' => curl_error($ch)
+                'method' => $method,
+                'errno' => $errno,
+                'error' => $error
             ]);
             curl_close($ch);
             return null;
         }
 
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        $data = json_decode($response, true);
+        if ($httpCode >= 400) {
+            $this->logger->error('Bitrix API HTTP error', [
+                'method' => $method,
+                'http_code' => $httpCode
+            ]);
+            return null;
+        }
 
-        //$this->logger->debug('Bitrix API response', $data ?? []);
+        $data = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->logger->error('Failed to decode JSON from Bitrix', [
+                'method' => $method,
+                'json_error' => json_last_error_msg()
+            ]);
+            return null;
+        }
 
         return $data;
     }

@@ -48,7 +48,7 @@ class ActivityService
         // Если активность не найдена, логируем ошибку
         if (!isset($activity['result'])) {
             $this->logger->error('[ERROR] Activity not found', ['activityId' => $activityId]);
-            return 0;
+            return null;
         }
 
         $activityData = $activity['result'];

@@ -31,43 +31,6 @@ class LeadService
         ])['result'] ?? [];
     }
 
-    /**
-     * Лиды, где встречается email клиента
-     */
-    public function listByEmail(string $email): array
-    {
-        $result = [];
-        $leads = $this->listAll();
-
-        foreach ($leads as $lead) {
-            if ($this->leadHasEmail($lead['ID'], $email)) {
-                $result[] = $lead;
-            }
-        }
-
-        return $result;
-    }
-
-    private function leadHasEmail(int $leadId, string $email): bool
-    {
-        $acts = $this->bx->call('crm.activity.list', [
-            'filter' => [
-                'OWNER_TYPE_ID' => 1,
-                'OWNER_ID' => $leadId,
-                'TYPE_ID' => '4'
-            ],
-            'select' => ['SETTINGS']
-        ])['result'] ?? [];
-
-        foreach ($acts as $act) {
-            if (strcasecmp($act['SETTINGS']['EMAIL_META']['from'], $email) === 0) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public function listAll(): array
     {
         $cacheKey = 'leads_all';
@@ -85,7 +48,7 @@ class LeadService
 
     function createLeadAndWait(string $title, ?int $contactId = null, int $timeout = 30, int $interval = 2): ?int 
     {        
-        // 1️⃣ Создаём лид
+        // Создаём лид
         $fields = [
             'TITLE' => $title ?: 'Проект без темы',
             'SOURCE_ID' => 'EMAIL'
@@ -101,7 +64,7 @@ class LeadService
             return null;
         }
 
-        // 2️⃣ Ожидаем, пока лид появится в системе 
+        // Ожидаем, пока лид появится в системе 
         $maxAttempts = (int)ceil($timeout / $interval);
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             $getResult = $this->bx->call('crm.lead.get', ['id' => $newLeadId]);
@@ -114,6 +77,7 @@ class LeadService
             sleep($interval);
         }
         // Если вышли за пределы таймаута
-        $this->log->info("Lead with ID: {$newLeadId} creation timeout {$timeout}sec expired", []);
+        $this->log->info("Lead with ID: {$newLeadId} creation timeout {$timeout}sec expired", []);        
+        return null;
     }
 }

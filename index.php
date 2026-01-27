@@ -55,7 +55,7 @@ try {
     $router = new EmailRouter(
         $logger,
         new ActivityService($bx, $logger),
-        new DealService($bx),
+        new DealService($bx, $logger),
         new LeadService($bx, $logger),
         new ContactService($bx)
     );

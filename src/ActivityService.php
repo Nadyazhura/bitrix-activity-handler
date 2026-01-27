@@ -47,13 +47,13 @@ class ActivityService
         // Получаем данные о существующей активности
         $activity = $this->bx->call('crm.activity.get', ['id' => $activityId]);
 
-        // Если активность не найдена, логируем ошибку
-        if (!isset($activity['result'])) {
+        // Если активность не найдена или ответ пустой, логируем ошибку
+        if (empty($activity['result'] ?? null)) {
             $this->logger->error('[ERROR] Activity not found', ['activityId' => $activityId]);
             return null;
         }
 
-        $activityData = $activity['result'];
+        $activityData = $activity['result'] ?? [];
         $email = $this->extractClientEmail($activityData);
 
         $communications = [

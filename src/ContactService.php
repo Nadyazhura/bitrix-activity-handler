@@ -26,6 +26,7 @@ class ContactService
             'select' => ['ID', 'NAME', 'LAST_NAME', 'EMAIL']
         ]);
 
-        return $res['result'][0] ?? null;
+        $data = $res['result'] ?? [];
+        return $data[0] ?? null;
     }
 }

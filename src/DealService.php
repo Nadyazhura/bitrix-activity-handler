@@ -23,12 +23,14 @@ class DealService
      */
     public function listByContact(int $contactId): array
     {
-        return $this->bx->call('crm.deal.list', [
+        $res = $this->bx->call('crm.deal.list', [
             'filter' => [
                 'CONTACT_ID' => $contactId
             ],
             'select' => ['ID', 'TITLE']
-        ])['result'] ?? [];
+        ]);
+
+        return $res['result'] ?? [];
     }
 
     /**
@@ -41,9 +43,11 @@ class DealService
             return self::$cache[$cacheKey]['data'];
         }
 
-        $deals = $this->bx->call('crm.deal.list', [
+        $res = $this->bx->call('crm.deal.list', [
             'select' => ['ID', 'TITLE']
-        ])['result'] ?? [];
+        ]);
+
+        $deals = $res['result'] ?? [];
 
         self::$cache[$cacheKey] = ['data' => $deals, 'time' => time()];
         return $deals;
@@ -55,12 +59,14 @@ class DealService
     public function createDealAndWait(string $title, int $timeout = 30, int $interval = 2): ?int 
     {        
         // Создаём сделку
-        $newDealId = $this->bx->call('crm.deal.add', [
+        $createRes = $this->bx->call('crm.deal.add', [
             'fields' => [
                 'TITLE' => $title ?: 'Проект без темы',
                 'SOURCE_ID' => 'EMAIL'
             ]
-        ])['result'] ?? null;
+        ]);
+
+        $newDealId = $createRes['result'] ?? null;
 
         if (!$newDealId) {           
             return null;
@@ -71,7 +77,7 @@ class DealService
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             $getResult = $this->bx->call('crm.deal.get', ['id' => $newDealId]);
 
-            if (!empty($getResult['result'])) {
+            if (!empty($getResult['result'] ?? null)) {
                 // Сделка найдена – можно вернуть его данные
                 return $newDealId;
             }

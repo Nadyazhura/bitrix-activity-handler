@@ -23,12 +23,14 @@ class LeadService
      */
     public function listByContact(int $contactId): array
     {
-        return $this->bx->call('crm.lead.list', [
+        $res = $this->bx->call('crm.lead.list', [
             'filter' => [
                 'CONTACT_ID' => $contactId
             ],
             'select' => ['ID', 'TITLE']
-        ])['result'] ?? [];
+        ]);
+
+        return $res['result'] ?? [];
     }
 
     public function listAll(): array
@@ -38,9 +40,11 @@ class LeadService
             return self::$cache[$cacheKey]['data'];
         }
 
-        $leads = $this->bx->call('crm.lead.list', [
+        $res = $this->bx->call('crm.lead.list', [
             'select' => ['ID', 'TITLE']
-        ])['result'] ?? [];
+        ]);
+
+        $leads = $res['result'] ?? [];
 
         self::$cache[$cacheKey] = ['data' => $leads, 'time' => time()];
         return $leads;
@@ -56,9 +60,11 @@ class LeadService
         if ($contactId) {
             $fields['CONTACT_ID'] = $contactId;
         }
-        $newLeadId = $this->bx->call('crm.lead.add', [
+        $createRes = $this->bx->call('crm.lead.add', [
             'fields' => $fields
-        ])['result'] ?? null;
+        ]);
+
+        $newLeadId = $createRes['result'] ?? null;
 
         if (!$newLeadId) {           
             return null;
@@ -69,7 +75,7 @@ class LeadService
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             $getResult = $this->bx->call('crm.lead.get', ['id' => $newLeadId]);
 
-            if (!empty($getResult['result'])) {
+            if (!empty($getResult['result'] ?? null)) {
                 // Лид найден – можно вернуть его данные 
                 return $newLeadId;
             }

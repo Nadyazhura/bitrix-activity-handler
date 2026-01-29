@@ -126,33 +126,6 @@ class ActivityService
     }
 
     /**
-     * Перепривязать activity к сущности (лид или сделка)
-     *
-     * @param int $entityType 1 — лид, 2 — сделка
-     * @param int $entityId
-     * @return bool успех операции
-     */
-    public function rebind(int $activityId, int $entityType, int $entityId, string $subject): bool
-    {
-        $result = $this->bx->call('crm.activity.update', [
-            'id' => $activityId,
-            'fields' => [
-                'OWNER_TYPE_ID' => $entityType,
-                'OWNER_ID'      => $entityId,
-                'SUBJECT' => $subject,
-                'COMPLETED' => 'N',
-                'BINDINGS' => [
-                    [
-                        'OWNER_TYPE_ID' => $entityType,
-                        'OWNER_ID'     => $entityId,
-                    ]
-                ]
-            ]
-        ]);
-        return isset($result['result']) ? true : false;
-    }
-
-    /**
      * Извлечь email клиента из активности
      */
     public static function extractClientEmail(array $activity): ?string

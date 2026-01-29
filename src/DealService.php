@@ -23,14 +23,15 @@ class DealService
      */
     public function listByContact(int $contactId): array
     {
-        $res = $this->bx->call('crm.deal.list', [
+        $res = $this->bx->fetchAllEntities('crm.deal.list', [
             'filter' => [
+                'order'  => ['ID' => 'DESC'],
                 'CONTACT_ID' => $contactId
             ],
             'select' => ['ID', 'TITLE']
         ]);
 
-        return $res['result'] ?? [];
+        return $res ?? [];
     }
 
     /**
@@ -43,13 +44,17 @@ class DealService
             return self::$cache[$cacheKey]['data'];
         }
 
-        $res = $this->bx->call('crm.deal.list', [
+        $res = $this->bx->fetchAllEntities('crm.deal.list', [
+            'order'  => ['ID' => 'DESC'],
+            'filter' => [ 'STAGE_SEMANTIC_ID'  => ['P'] ],  
             'select' => ['ID', 'TITLE']
         ]);
 
-        $deals = $res['result'] ?? [];
+        $deals = $res;
+        $count = is_array($deals) ? count($deals) : 0;
 
         self::$cache[$cacheKey] = ['data' => $deals, 'time' => time()];
+        $this->log->info("Количество проверяемых сделок: {$count}", []);
         return $deals;
     }
 

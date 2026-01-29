@@ -45,8 +45,7 @@ require __DIR__ . '/src/ContactService.php';
 require __DIR__ . '/src/FileLock.php';
 
 // Инициализация логгера
-$logger = new Logger($config['log']);  
-$logger->info('=====> Новая активность',[]);
+$logger = new Logger($config['log']);
 
 // Попытка получить глобальную файловую блокировку, чтобы избежать одновременной обработки
 $lock = FileLock::acquire('incoming_webhook', 5.0);
@@ -78,6 +77,10 @@ try {
         echo 'Bad Request';
         exit;
     }
+
+    // Инициализируем activityId в логгере, чтобы он автоматически добавлялся во все записи
+    $logger->setActivityId((int)$activityId);
+    $logger->info('=====> Новая активность', []);
 
     // Запуск обработки
     $router->handle((int)$activityId);

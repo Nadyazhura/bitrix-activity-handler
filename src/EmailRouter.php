@@ -43,21 +43,23 @@ class EmailRouter
 
             $subject = $activity['SUBJECT'] ?? '';
             $email   = $activity['SETTINGS']['EMAIL_META']['from'] ?? '';
-            $this->log->info('Обработка активности', ['activityId' => $activityId, 'subject' => $subject, 'email' => $email]);
+            $this->log->info('Обработка активности', ['activityId' => $activityId, 'тема' => $subject, 'от' => $email]);
 
             // Ищем контакт
+            /*$this->log->info('Ищем контакт с email ', [$email]);
             $contact = $this->getValidContact($email);
 
             // Ищем сделки и лиды контакта, подходящие по теме.
             // Если не нашли - создаем лид, клонируем в него активность
             if ($contact) {
-                $this->log->info('Ищем лиды и сделки у контакта', []);
                 $this->handleEntitiesByContact($activity, $subject, $contact);
                 return;
-            }
+            }else{
+                $this->log->info('Контакт не найден', []);
+            }*/
 
             // Ищем по всем лидам
-            $this->log->info('Ищем по всем лиам', []);
+            $this->log->info('Ищем по всем лидам', []);
             if ($this->handleEntitiesByAll($activity, $subject, 'lead')) return;
 
             // Ищем по всем сделкам
@@ -65,9 +67,9 @@ class EmailRouter
             if ($this->handleEntitiesByAll($activity, $subject, 'deal')) return;
 
             // Если ничего не найдено — создаем новый лид
-            $this->log->info('Не найдено ни лидов, ни сделок с такой темой', ['subject' => $subject]);
+            $this->log->info('Не найдено ни лидов, ни сделок с такой темой, Создаем новый лид', ['subject' => $subject]);
             $newLeadId = $this->leads->createLeadAndWait($subject);
-
+            
             if (!$newLeadId) {
                 $this->log->info('Не удалось создать лид', ['subject' => $subject]);
                 return;
@@ -128,7 +130,7 @@ class EmailRouter
     private function handleEntitiesByContact(array $activity, string $subject, array $contact): void
     {
         try {
-            $this->log->info('Контакт найден', $contact);
+            $this->log->info('Контакт найден. Ищем лиды и сделки у контакта', $contact);
 
             // Сделки контакта
             $dealsList = $this->deals->listByContact($contact['ID']);

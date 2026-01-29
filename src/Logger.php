@@ -17,6 +17,8 @@ class Logger
     /** @var int минимальный уровень логирования */
     private int $level;
 
+    /** @var int|null текущий activityId для включения в контекст логов */
+    private ?int $activityId = null;
     /**
      * Соответствие текстового уровня числовому
      * Чем больше число — тем выше важность
@@ -24,6 +26,7 @@ class Logger
     private const LEVELS = [
         'DEBUG' => 0,
         'INFO'  => 1,
+        'WARNING' => 1,
         'ERROR' => 2,
     ];
 
@@ -33,6 +36,7 @@ class Logger
     private const SYSLOG_LEVELS = [
         'DEBUG' => LOG_DEBUG,
         'INFO'  => LOG_INFO,
+        'WARNING' => LOG_WARNING,
         'ERROR' => LOG_ERR,
     ];
 
@@ -63,6 +67,12 @@ class Logger
         $this->log('DEBUG', $message, $context);
     }
 
+    /** Лог уровня WARNING */
+    public function warning(string $message, array $context = [])
+    {
+        $this->log('WARNING', $message, $context);
+    }
+
     /** Лог уровня INFO */
     public function info(string $message, array $context = [])
     {
@@ -75,6 +85,12 @@ class Logger
         $this->log('ERROR', $message, $context);
     }
 
+    /** Установить activityId — будет автоматически добавляться во все логи */
+    public function setActivityId(?int $id): void
+    {
+        $this->activityId = $id;
+    }
+
     /**
      * Основной метод логирования
      */
@@ -83,6 +99,10 @@ class Logger
         // Если уровень сообщения ниже минимального — пропускаем
         if (self::LEVELS[$level] < $this->level) {
             return;
+        }
+
+        if (!array_key_exists('activityId', $context)) {
+            $context['activityId'] = $this->activityId;
         }
 
         $line = sprintf(

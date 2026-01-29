@@ -76,4 +76,26 @@ class BitrixClient
 
         return $data;
     }
+
+    /**
+     * Получение всех сущностей с учётом постраничной навигации
+     *
+     * @param string $method
+     * @param array  $params
+     * @return array
+     */
+    public function fetchAllEntities(string $method, array $params = []): array {
+    $start = 0;
+    $items = [];
+    while ($start !== false) {
+        $params['start'] = $start;
+        $response = $this->call($method, $params);
+        if (!$response || !isset($response['result'])) {
+            break;
+        }
+        $items = array_merge($items, $response['result']);
+        $start = $response['next'] ?? false;
+    }
+    return $items;
+}
 }

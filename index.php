@@ -48,7 +48,7 @@ require __DIR__ . '/src/FileLock.php';
 $logger = new Logger($config['log']);
 
 // Попытка получить глобальную файловую блокировку, чтобы избежать одновременной обработки
-$lock = FileLock::acquire('incoming_webhook', 5.0);
+$lock = FileLock::acquire('incoming_webhook', 10.0);
 if ($lock === false) {
     $logger->warning('Could not acquire webhook lock');
     http_response_code(503);

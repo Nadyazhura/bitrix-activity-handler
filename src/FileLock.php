@@ -44,7 +44,6 @@ class FileLock
             fclose($this->fp);
             $this->fp = null;
         }
-        // Не удаляем файл явно — это необязательно
     }
 
     public function __destruct()
